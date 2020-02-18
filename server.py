@@ -6,9 +6,16 @@ import  os
 app = Flask(__name__, template_folder='templates')
 app.config['APP'] = 'server'
 app.config['DEBUG'] = True
-# MONGO_URI = os.environ.get('MONGO_URI')
-# print(MONGO_URI)
-# app.config.from_object('some string')
+
+#  FOR PROD
+app.config['ENV'] = 'prod'
+if __name__ == '__main__':
+    app.run(debug=False)
+#  FOR DEV
+# app.config['ENV'] = 'development'
+# if __name__ == '__main__':
+#     app.run(debug=True)
+
 app.config["MONGO_URI"] = 'mongodb+srv://abdulrehmanFrt:abdulrehmanFrt@userdb-tywac.mongodb.net/portfolio?retryWrites=true&w=majority'
 mongo = PyMongo(app)
 
@@ -44,6 +51,3 @@ def form_submit():
         return redirect('index.html')
 
 
-
-if __name__ == '__main__':
-    app.run(debug=True)
