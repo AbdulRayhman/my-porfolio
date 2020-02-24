@@ -1,23 +1,36 @@
 import csv
 from flask import render_template, request, url_for, redirect, Blueprint, Flask
-from flask_pymongo import PyMongo
-import  os
+from flask_sqlalchemy import SQLAlchemy
+from send_mail import send_mail
+import os
 
 app = Flask(__name__, template_folder='templates')
-app.config['APP'] = 'server'
-app.config['DEBUG'] = True
+ENV = 'dev'
+if ENV == 'dev':
+    app.debug = True
+    app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:postgres@localhost:5432/portfolio'
+else:
+    app.debug = False
+    app.config['SQLALCHEMY_DATABASE_URI'] = ''
 
-#  FOR PROD
-app.config['ENV'] = 'prod'
-if __name__ == '__main__':
-    app.run(debug=False)
-#  FOR DEV
-# app.config['ENV'] = 'development'
-# if __name__ == '__main__':
-#     app.run(debug=True)
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
-app.config["MONGO_URI"] = 'mongodb+srv://abdulrehmanFrt:abdulrehmanFrt@userdb-tywac.mongodb.net/portfolio?retryWrites=true&w=majority'
-mongo = PyMongo(app)
+db = SQLAlchemy(app)
+
+
+class Contact(db.Model):
+    __tablename__ = 'contact_data'
+    id = db.Column(db.Integer,  primary_key=True)
+    email = db.Column(db.String(200), unique=True)
+    subject = db.Column(db.String(300))
+    message = db.Column(db.String(500))
+
+    def __init__(self, email, subject, message):
+        super().__init__()
+        self.email = email
+        self.subject = subject
+        self.message = message
+
 
 @app.route('/')
 def home_page():
@@ -28,15 +41,23 @@ def home_page():
 def html_pages(page_name: None):
     return render_template(page_name)
 
+
 def write_data_to_database(data):
     try:
-        portfolio_collection = mongo.db.contacts
-        portfolio_collection.insert({
-            'email ': data['email'],
-            'subject ': data['subject'],
-            'message ': data['message'],
-        })
-        return redirect('thank-you.html')
+        if data['email'] == '' or data['subject'] == '' or data['message'] == '':
+            return render_template('contact.html', errorMessage='Please enter the required fields!')
+        else:
+            if db.session.query(Contact).filter(Contact.email == data['email']).count() == 0:
+                dbData = Contact(
+                    data['email'], data['subject'], data['message'])
+                db.session.add(dbData)
+                db.session.commit()
+                send_mail(
+                    data['email'], data['subject'], data['message'])
+                return redirect('thank-you.html')
+            else:
+                return render_template('contact.html', errorMessage='Email already exist!')
+
     except:
         return redirect('index.html')
 
@@ -44,10 +65,7 @@ def write_data_to_database(data):
 @app.route('/submit_form', methods=['POST', 'GET'])
 def form_submit():
     data = request.form.to_dict()
-    print(data)
     try:
         return write_data_to_database(data)
     except:
         return redirect('index.html')
-
-
