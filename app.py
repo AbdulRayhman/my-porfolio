@@ -11,7 +11,7 @@ if ENV == 'dev':
     app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:postgres@localhost:5432/portfolio'
 else:
     app.debug = False
-    app.config['SQLALCHEMY_DATABASE_URI'] = 'postgres://ctypukrrbiuvuw:351000b11334b08301cd2ec979de2426c5de368140cb025070ff6d9125340b99@ec2-50-17-178-87.compute-1.amazonaws.com:5432/da2g59hvhu0nsb'
+    app.config['SQLALCHEMY_DATABASE_URI'] = 'postgres://rlpszxythocamh:76086121639d63ff015b7f3f14b6a6cd55e5ebc03292984694c32bbf31253fe5@ec2-52-23-14-156.compute-1.amazonaws.com:5432/d4264cjl2tikd3'
 
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
